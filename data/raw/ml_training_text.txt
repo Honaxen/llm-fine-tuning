@@ -1,0 +1,41 @@
+The transformer architecture uses self-attention mechanisms to process sequences in parallel.
+Self-attention allows each token to attend to all other tokens in the sequence.
+Multi-head attention runs several attention functions simultaneously and concatenates the results.
+Positional encoding adds position information to token embeddings since transformers have no recurrence.
+The encoder processes the input sequence and the decoder generates the output sequence.
+BERT uses bidirectional attention to understand context from both left and right directions.
+GPT uses causal attention where each token can only attend to previous tokens.
+The attention score is computed as the dot product of query and key vectors divided by the square root of the dimension.
+Residual connections help gradients flow through deep transformer networks during training.
+Layer normalization stabilizes training by normalizing activations within each layer.
+Word embeddings map tokens to dense vectors where similar words are close in vector space.
+Sentence embeddings represent entire sentences as single vectors for downstream tasks.
+SBERT fine-tunes BERT using siamese networks to produce semantically meaningful sentence embeddings.
+Cosine similarity measures the angle between two vectors and is commonly used for text similarity.
+TF-IDF weighs words by their frequency in a document relative to their frequency in the corpus.
+Mean pooling averages all token embeddings to produce a single sentence representation.
+The CLS token in BERT is used as a summary representation for classification tasks.
+Retrieval-Augmented Generation combines a retriever and a generator to answer questions from documents.
+FAISS enables efficient similarity search over large collections of dense vectors.
+Chunking strategy determines how documents are split before embedding and indexing.
+A chunk that cuts mid-sentence produces a noisy embedding that retrieves poorly.
+Sentence-based chunking preserves semantic units and produces cleaner embeddings.
+The grounding score measures how much the generated answer is supported by the retrieved context.
+Hallucination occurs when a model generates facts not present in the provided context.
+Top-k retrieval returns the k most similar chunks to the query vector.
+Fine-tuning adapts a pre-trained model to a specific domain using task-specific data.
+Language model fine-tuning trains the model to predict the next token on domain text.
+Perplexity measures how surprised a model is by a text — lower perplexity means better understanding.
+Cross-entropy loss measures the difference between predicted and actual token distributions.
+Learning rate controls how much the weights change during each training step.
+Gradient descent updates weights in the direction that reduces the loss function.
+Overfitting occurs when a model learns the training data too well and fails to generalize.
+Early stopping halts training when validation loss stops improving to prevent overfitting.
+Named entity recognition identifies and classifies named entities in text.
+Sentiment analysis classifies text as positive, negative, or neutral.
+Text classification assigns predefined categories to input documents.
+Machine translation converts text from one language to another.
+Summarization produces a shorter version of a document that preserves key information.
+Question answering systems find answers to questions in a given context.
+Semantic similarity measures how close two sentences are in meaning.
+Information retrieval finds relevant documents from a large corpus given a query.
