@@ -1,2 +1,5 @@
 models/
-models/
+*.safetensors
+*.bin
+__pycache__/
+.ipynb_checkpoints/

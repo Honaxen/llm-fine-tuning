@@ -54,7 +54,19 @@ Python · PyTorch · HuggingFace Transformers · Apple MPS
 
 ## What I Learned
 
-TBD — will be updated after all notebooks are complete.
+Fine-tuning works — but small datasets have a cost.
+
+ML text perplexity dropped 86% after training on 41 sentences.
+The model learned ML vocabulary and sentence patterns quickly.
+
+But general text perplexity increased 54% — catastrophic forgetting.
+When you train on new data, the model partially overwrites what it knew before.
+
+The lesson: fine-tuning is a trade-off between domain adaptation and general knowledge.
+More data, lower learning rate, and mixed training reduce forgetting.
+
+Perplexity is the right metric for evaluating language model understanding.
+It measures surprise — a model that understands the domain is less surprised by domain text.
 
 ---
 
