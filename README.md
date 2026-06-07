@@ -34,6 +34,7 @@ llm-fine-tuning/
 │   ├── 02_data_preparation.ipynb
 │   ├── 03_fine_tuning.ipynb
 │   └── 04_evaluation.ipynb
+│   └── 05_mlflow_tracking.ipynb
 ├── src/
 │   ├── trainer.py
 │   └── evaluator.py
@@ -48,7 +49,7 @@ llm-fine-tuning/
 
 ## Stack
 
-Python · PyTorch · HuggingFace Transformers · Apple MPS
+Python · PyTorch · HuggingFace Transformers · MLflow · Apple MPS
 
 ---
 
