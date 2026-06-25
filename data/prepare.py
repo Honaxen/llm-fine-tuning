@@ -1,18 +1,14 @@
 """
 data/prepare.py — Download and prepare Alpaca instruction dataset.
 
-Alpaca: 52,000 instruction-following examples by Stanford.
-We convert to ChatML format used by TinyLlama:
-    <|system|>...<|user|>...<|assistant|>...
-
 Usage:
-    python3 data/prepare.py                 -- full dataset
-    python3 data/prepare.py --sample 500    -- small sample
+    python3 data/prepare.py --sample 200
 """
 
 import argparse
 import json
 import os
+import ssl
 import urllib.request
 
 ALPACA_URL = (
@@ -23,6 +19,13 @@ SYSTEM_PROMPT = (
     "You are a helpful, respectful, and honest assistant. "
     "Always answer as helpfully as possible."
 )
+
+
+def _ssl_ctx():
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    return ctx
 
 
 def format_chatml(instruction: str, input_text: str, output: str) -> dict:
@@ -38,8 +41,11 @@ def format_chatml(instruction: str, input_text: str, output: str) -> dict:
 
 def download_alpaca(output_path: str) -> list[dict]:
     print("Downloading Alpaca dataset...")
-    req = urllib.request.Request(ALPACA_URL, headers={"User-Agent": "llm-fine-tuning/1.0"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    req = urllib.request.Request(
+        ALPACA_URL,
+        headers={"User-Agent": "llm-fine-tuning/1.0"}
+    )
+    with urllib.request.urlopen(req, timeout=30, context=_ssl_ctx()) as resp:
         data = json.loads(resp.read().decode())
     with open(output_path, "w") as f:
         json.dump(data, f, indent=2)
@@ -74,7 +80,9 @@ def main():
     prepare(raw, os.path.join(args.out_dir, "alpaca_formatted.json"))
     prepare(raw, os.path.join(args.out_dir, "sample.json"), max_samples=200)
 
-    print(f"\nNext: python3 -c \"from src.trainer import LLMTrainer; ...\"")
+    print(f"\nReady:")
+    print(f"  Full    : data/alpaca_formatted.json")
+    print(f"  Sample  : data/sample.json")
 
 
 if __name__ == "__main__":
