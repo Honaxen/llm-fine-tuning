@@ -1,27 +1,41 @@
-# LLM Fine-Tuning
+# LLM Fine-Tuning Lab
 
-Fine-tuning a small language model from scratch.
-Understanding what happens inside the model when we adapt it to new data.
-
----
-
-## Why Fine-Tuning?
-
-Pre-trained models know a lot — but not everything.
-Fine-tuning adapts a general model to a specific domain or task.
-
-This project fine-tunes DistilGPT-2 on custom text data
-and measures how the model changes before and after training.
+Fine-tune TinyLlama-1.1B on instruction data using LoRA — on a MacBook, no GPU required.
 
 ---
 
-## Model
+## Why This Project
 
-**DistilGPT-2** — a distilled version of GPT-2
-- runs on Apple Silicon (MPS)
-- 6 transformer layers, 12 attention heads
-- 768 hidden dimensions
-- Same architecture as GPT-2, 40% fewer parameters
+Every other project in this portfolio uses an LLM as a black box: send a prompt, get a response.
+
+This project goes **inside** the model and changes how it behaves.
+
+---
+
+## Upgrade: v1 → v2
+
+| | v1 | v2 |
+|---|---|---|
+| Model | distilgpt2 (82M) | TinyLlama-1.1B |
+| Method | Full fine-tuning | LoRA (trains 0.38%) |
+| Dataset | Custom texts | Stanford Alpaca (52k) |
+| Trainable params | 82M | ~4M |
+| Adapter size | ~300MB | ~50MB |
+
+---
+
+## What LoRA Does
+
+```
+Without LoRA:
+  Update all 1,100,000,000 parameters → needs A100 GPU
+
+With LoRA (r=16):
+  Freeze base model
+  Add small adapter matrices to attention layers
+  Train only ~4,000,000 parameters (0.38%)
+  Runs on a MacBook
+```
 
 ---
 
@@ -29,45 +43,109 @@ and measures how the model changes before and after training.
 
 ```
 llm-fine-tuning/
-├── notebooks/
-│   ├── 01_baseline_evaluation.ipynb
-│   ├── 02_data_preparation.ipynb
-│   ├── 03_fine_tuning.ipynb
-│   └── 04_evaluation.ipynb
-│   └── 05_mlflow_tracking.ipynb
 ├── src/
-│   ├── trainer.py
-│   └── evaluator.py
+│   ├── trainer.py     — LLMTrainer: TinyLlama + LoRA fine-tuning
+│   └── evaluator.py   — ModelEvaluator: perplexity comparison
 ├── data/
-│   ├── raw/
-│   └── processed/
-├── models/
-└── README.md
+│   ├── prepare.py     — download Alpaca, convert to ChatML format
+│   └── sample.json    — 200-example sample for quick testing
+├── notebooks/         — walkthrough notebooks
+├── models/            — saved LoRA adapters (gitignored)
+├── requirements.txt
+└── .gitignore
 ```
+
+---
+
+## Getting Started
+
+```bash
+pip install -r requirements.txt
+```
+
+### Step 1 — Prepare dataset
+
+```bash
+python3 data/prepare.py --sample 500
+```
+
+### Step 2 — Fine-tune
+
+```python
+import json
+from src.trainer import LLMTrainer
+
+with open("data/sample.json") as f:
+    data = json.load(f)
+
+trainer = LLMTrainer(lora_r=16, lora_alpha=32)
+losses = trainer.train(
+    train_data=data[:180],
+    eval_data=data[180:],
+    output_dir="models/lora_adapter",
+    epochs=3,
+)
+```
+
+### Step 3 — Generate
+
+```python
+response = trainer.generate(
+    "<|system|>\nYou are a helpful assistant.</s>\n"
+    "<|user|>\nExplain what machine learning is.</s>\n"
+    "<|assistant|>\n"
+)
+print(response)
+```
+
+### Step 4 — Evaluate perplexity
+
+```python
+from src.evaluator import ModelEvaluator
+
+evaluator = ModelEvaluator(trainer.tokenizer, trainer.model.device)
+# compare base vs fine-tuned perplexity
+```
+
+---
+
+## LoRA Configuration
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `r` (rank) | 16 | Size of adapter matrices |
+| `lora_alpha` | 32 | Scaling factor |
+| `target_modules` | q_proj, v_proj | Attention layers to adapt |
+| `lora_dropout` | 0.05 | Regularization |
+| Trainable params | ~4M | 0.38% of total |
 
 ---
 
 ## Stack
 
-Python · PyTorch · HuggingFace Transformers · MLflow · Apple MPS
+Python · PyTorch · HuggingFace Transformers · PEFT · Datasets · pytest
 
 ---
 
 ## What I Learned
 
-Fine-tuning works — but small datasets have a cost.
+LoRA is an approximation, not a shortcut.
+Instead of learning ΔW (d×d), learn A (d×r) and B (r×d) where r << d.
+Their product approximates ΔW with far fewer parameters.
 
-ML text perplexity dropped 86% after training on 41 sentences.
-The model learned ML vocabulary and sentence patterns quickly.
+Adapter weights are tiny.
+Full TinyLlama is ~2.2GB. The LoRA adapter is ~50MB.
+You ship the adapter, not the model.
 
-But general text perplexity increased 54% — catastrophic forgetting.
-When you train on new data, the model partially overwrites what it knew before.
+Data format matters more than training.
+TinyLlama uses ChatML tokens. Wrong format = garbage output regardless of training quality.
 
-The lesson: fine-tuning is a trade-off between domain adaptation and general knowledge.
-More data, lower learning rate, and mixed training reduce forgetting.
+---
 
-Perplexity is the right metric for evaluating language model understanding.
-It measures surprise — a model that understands the domain is less surprised by domain text.
+## Related Projects
+
+- [llm-evaluation-playground](https://github.com/Honaxen/llm-evaluation-playground) — evaluating LLM outputs
+- [multi-tool-agent](https://github.com/Honaxen/multi-tool-agent) — using LLMs as black boxes
 
 ---
 
